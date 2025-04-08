@@ -37,9 +37,9 @@
  * Thread/Task reference
  **********************************************************/
 #ifdef CONFIG_BLUEDROID_PINNED_TO_CORE
-#define BLUETOOTH_TASK_PINNED_TO_CORE              (CONFIG_BLUEDROID_PINNED_TO_CORE < CONFIG_FREERTOS_NUMBER_OF_CORES ? CONFIG_BLUEDROID_PINNED_TO_CORE : tskNO_AFFINITY)
+#define BLUETOOTH_TASK_PINNED_TO_CORE CONFIG_BLUEDROID_PINNED_TO_CORE
 #else
-#define BLUETOOTH_TASK_PINNED_TO_CORE              (0)
+#define BLUETOOTH_TASK_PINNED_TO_CORE 0
 #endif
 
 #define SECOND_TO_USECOND          1000000
@@ -342,7 +342,6 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
                 }
                 else if (descr_value == 0x0000){
                     can_send_notify = false;
-                    a_property = 0;
                     ESP_LOGI(GATTS_TAG, "Notification/Indication disable");
                 }else{
                     ESP_LOGE(GATTS_TAG, "Unknown descriptor value");
@@ -451,10 +450,12 @@ static void gatts_profile_a_event_handler(esp_gatts_cb_event_t event, esp_gatt_i
         ESP_LOGI(GATTS_TAG, "Connected, conn_id %u, remote "ESP_BD_ADDR_STR"",
                      param->connect.conn_id, ESP_BD_ADDR_HEX(param->connect.remote_bda));
         gl_profile_tab[PROFILE_A_APP_ID].conn_id = param->connect.conn_id;
+        
         break;
     }
     case ESP_GATTS_DISCONNECT_EVT:
         is_connect = false;
+        can_send_notify = false;  // Reset notification state on disconnect
         ESP_LOGI(GATTS_TAG, "Disconnected, remote "ESP_BD_ADDR_STR", reason 0x%x",
                  ESP_BD_ADDR_HEX(param->disconnect.remote_bda), param->disconnect.reason);
         esp_ble_gap_ext_adv_start(NUM_EXT_ADV_SET, &ext_adv[0]);
